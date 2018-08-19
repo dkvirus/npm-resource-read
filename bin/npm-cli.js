@@ -5,6 +5,9 @@
  * 闭包内的变量作用域只在函数内，不会产生污染
  */
 ;(function () { 
+  var util = require('util')
+
+  console.log('======= step1: WScript 校验 =========')
   // WScript 是 window 原生脚本对象，typeof WScript !== 'undefined' 判断当前系统是否是 window 系统
   if (typeof WScript !== 'undefined') {
     WScript.echo(
@@ -25,6 +28,10 @@
   */
   process.title = 'npm'
 
+  console.log('======= step2: node 版本校验 =========')
+  /**
+   * node version<6.0.0 直接报错
+   */
   var unsupported = require('../lib/utils/unsupported.js')
   // npm@6.2.0 不兼容 node@4.7.0 以下的版本，检测当前 node 版本如果低于 4.7.0，进程中止，报错，下面的代码不会被执行
   unsupported.checkForBrokenNode()    
@@ -78,13 +85,34 @@
   log.verbose('cli', process.argv)
 
   // 解析命令行选项  https://npm.taobao.org/package/nopt
+  // conf 就是命令行选项转换的对象
+  /**
+   * $ npm install xx
+   * conf = 
+   *   { argv:
+   *     { remain: [ 'install', 'xx' ],
+   *       cooked: [ 'install', 'xx' ],
+   *       original: [ 'install', 'xx' ] 
+   *     } 
+   *   }
+   * $ npm
+   * conf = 
+   *   { argv:
+   *     { remain: [],
+   *       cooked: [],
+   *       original: [] 
+   *     } 
+   *   }
+   */
   var conf = nopt(types, shorthands)
-  npm.argv = conf.argv.remain
+  console.log(util.inspect(conf))
+  npm.argv = conf.argv.remain  
+
+  // npm.command = 'install'，如果没有命令就会打印帮助文档
   if (npm.deref(npm.argv[0])) npm.command = npm.argv.shift()
   else conf.usage = true
 
   if (conf.version) {
-    console.log(npm.version)
     return errorHandler.exit(0)
   }
 
@@ -104,8 +132,10 @@
     npm.command = 'help'
   }
 
-  // now actually fire up npm and run the command.
-  // this is how to use npm programmatically:
+  process.exit(1)
+
+  // now actually fire up npm and run the command.  现在实际启动npm并运行命令。
+  // this is how to use npm programmatically:  以下是如何通过编程方式使用npm:
   conf._exit = true
   npm.load(conf, function (er) {
     if (er) return errorHandler(er)
