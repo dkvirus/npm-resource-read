@@ -105,7 +105,6 @@
    *   }
    */
   var conf = nopt(types, shorthands)
-  console.log(util.inspect(conf))
   npm.argv = conf.argv.remain  
 
   // npm.command = 'install'，如果没有命令就会打印帮助文档
@@ -132,13 +131,17 @@
     npm.command = 'help'
   }
 
-  process.exit(1)
-
   // now actually fire up npm and run the command.  现在实际启动npm并运行命令。
   // this is how to use npm programmatically:  以下是如何通过编程方式使用npm:
   conf._exit = true
+
+  console.log('conf is ', conf)
+  console.log('npm.config is ', npm.config)
+  console.log('======= step3: 启动npm并运行命令 =========')
   npm.load(conf, function (er) {
+    console.log('enter load method')
     if (er) return errorHandler(er)
+    console.log(npm.config.get('update-notifier'))
     if (
       npm.config.get('update-notifier') &&
       !unsupported.checkVersion(process.version).unsupported
