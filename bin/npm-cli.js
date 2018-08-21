@@ -135,13 +135,10 @@
   // this is how to use npm programmatically:  以下是如何通过编程方式使用npm:
   conf._exit = true
 
-  console.log('conf is ', conf)
-  console.log('npm.config is ', npm.config)
   console.log('======= step3: 启动npm并运行命令 =========')
   npm.load(conf, function (er) {
     console.log('enter load method')
     if (er) return errorHandler(er)
-    console.log(npm.config.get('update-notifier'))
     if (
       npm.config.get('update-notifier') &&
       !unsupported.checkVersion(process.version).unsupported
