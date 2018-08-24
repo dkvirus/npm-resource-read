@@ -5,7 +5,7 @@
  * 闭包内的变量作用域只在函数内，不会产生污染
  */
 ;(function () { 
-  var util = require('util')
+  var inspect = require('util').inspect
 
   console.log('======= step1: WScript 校验 =========')
   // WScript 是 window 原生脚本对象，typeof WScript !== 'undefined' 判断当前系统是否是 window 系统
@@ -47,14 +47,26 @@
   unsupported.checkForUnsupportedNode()   // 检测当前 node 版本是否与 npm@6.2.0 兼容
 
   var path = require('path')
+  // 重头戏1：引入 npm 各种方法
   var npm = require('../lib/npm.js')
+  // 重头戏2：引入各种配置
   var npmconf = require('../lib/config/core.js')
+  // 错误处理器
   var errorHandler = require('../lib/utils/error-handler.js')
 
-  var configDefs = npmconf.defs
-  var shorthands = configDefs.shorthands
-  var types = configDefs.types
+  // console.log('npm is ', inspect(npm, { depth: 1 }))
+  // console.log('npmconf is ', inspect(npmconf, { depth: 1 }))
+
+  // 这三行是静态的配置              ////////////////////////
+  var configDefs = npmconf.defs                 //////////
+  var shorthands = configDefs.shorthands        //////////
+  var types = configDefs.types                  //////////
+  ////////////////////////////////////////////////////////
+
   var nopt = require('nopt')
+
+  // console.log('shorthands is ', shorthands)
+  // console.log('types is ', types)
 
   // if npm is called as "npmg" or "npm_g", then
   // run in global mode.
@@ -97,19 +109,26 @@
    *   }
    * $ npm
    * conf = 
-   *   { argv:
-   *     { remain: [],
-   *       cooked: [],
-   *       original: [] 
-   *     } 
+   *   { 
+   *      usage: true,
+   *      argv: { 
+   *        remain: [],
+   *        cooked: [],
+   *        original: [] 
+   *      } 
    *   }
    */
+  // 这里解析了命令行的参数
   var conf = nopt(types, shorthands)
-  npm.argv = conf.argv.remain  
+  console.log('conf is ', inspect(conf, { depth: 2 }))
+  
+  npm.argv = conf.argv.remain   // remain 过滤选项之后的命令
 
-  // npm.command = 'install'，如果没有命令就会打印帮助文档
   if (npm.deref(npm.argv[0])) npm.command = npm.argv.shift()
   else conf.usage = true
+
+  console.log('conf.version is ', conf.version)
+  console.log('conf.versions is ', conf.versions)
 
   if (conf.version) {
     return errorHandler.exit(0)
@@ -126,15 +145,27 @@
 
   process.on('uncaughtException', errorHandler)
 
+  console.log('npm.command is ', npm.command)
+
+  /**
+   * usage 为 true 表示查看说明文档
+   */
   if (conf.usage && npm.command !== 'help') {
+    console.log('npm.argv is ', npm.argv)
     npm.argv.unshift(npm.command)
+    console.log('npm.argv is ', npm.argv)
     npm.command = 'help'
   }
+
+  
 
   // now actually fire up npm and run the command.  现在实际启动npm并运行命令。
   // this is how to use npm programmatically:  以下是如何通过编程方式使用npm:
   conf._exit = true
 
+  console.log('conf is ', conf)
+
+  process.exit(1)
   console.log('======= step3: 启动npm并运行命令 =========')
   npm.load(conf, function (er) {
     console.log('enter load method')
