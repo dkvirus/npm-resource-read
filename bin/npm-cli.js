@@ -9,17 +9,17 @@
 
   console.log('======= step1: WScript 校验 =========')
   // WScript 是 window 原生脚本对象，typeof WScript !== 'undefined' 判断当前系统是否是 window 系统
-  if (typeof WScript !== 'undefined') {
-    WScript.echo(
-      'npm does not work when run\n' +
-        'with the Windows Scripting Host\n\n' +
-        "'cd' to a different directory,\n" +
-        "or type 'npm.cmd <args>',\n" +
-        "or type 'node npm <args>'."
-    )
-    WScript.quit(1)
-    return
-  }
+  // if (typeof WScript !== 'undefined') {
+  //   WScript.echo(
+  //     'npm does not work when run\n' +
+  //       'with the Windows Scripting Host\n\n' +
+  //       "'cd' to a different directory,\n" +
+  //       "or type 'npm.cmd <args>',\n" +
+  //       "or type 'node npm <args>'."
+  //   )
+  //   WScript.quit(1)
+  //   return
+  // }
 
   /** 
    * process.title 属性用于获取或设置当前进程在 ps 命令中显示的进程名字
@@ -34,18 +34,19 @@
    */
   var unsupported = require('../lib/utils/unsupported.js')
   // npm@6.2.0 不兼容 node@4.7.0 以下的版本，检测当前 node 版本如果低于 4.7.0，进程中止，报错，下面的代码不会被执行
-  unsupported.checkForBrokenNode()    
+  // unsupported.checkForBrokenNode()    
 
-  var log = require('npmlog')
+  // var log = require('npmlog')
   /**
    * will be unpaused when config is loaded. dk: why do this？
    * log.pause() 下面所有 log.info()  压根就不会在控制台打印出来，为啥还要写条日志信息？？
    */
-  log.pause() 
-  log.info('it worked if it ends with', 'ok')
+  // log.pause() 
+  // log.info('it worked if it ends with', 'ok')
 
-  unsupported.checkForUnsupportedNode()   // 检测当前 node 版本是否与 npm@6.2.0 兼容
+  // unsupported.checkForUnsupportedNode()   // 检测当前 node 版本是否与 npm@6.2.0 兼容
 
+  console.log('======= step3: npm 公共方法和配置 =========')
   var path = require('path')
   // 重头戏1：引入 npm 各种方法
   var npm = require('../lib/npm.js')
@@ -89,12 +90,12 @@
    * 按照官方的意思是本来想敲 `npm -g`，结果手误敲成 `npmg` 或者 `npm_g`，Are you kidding me..
    * npmg 或者 npm_g 压根就没这个命令，控制台会直接报错的好吗？？这三行代码完全没有意义！！
    */
-  if (path.basename(process.argv[1]).slice(-1) === 'g') {
-    process.argv.splice(1, 1, 'npm', '-g')
-  }
+  // if (path.basename(process.argv[1]).slice(-1) === 'g') {
+  //   process.argv.splice(1, 1, 'npm', '-g')
+  // }
 
   // log.verbose() 也不打印，这里写这句话不觉明历，verbose 中文意思：冗长的，啰嗦的
-  log.verbose('cli', process.argv)
+  // log.verbose('cli', process.argv)
 
   // 解析命令行选项  https://npm.taobao.org/package/nopt
   // conf 就是命令行选项转换的对象
@@ -119,16 +120,13 @@
    *   }
    */
   // 这里解析了命令行的参数
+  console.log('======= step4: 解析命令行参数 =========')
   var conf = nopt(types, shorthands)
-  console.log('conf is ', inspect(conf, { depth: 2 }))
-  
   npm.argv = conf.argv.remain   // remain 过滤选项之后的命令
 
+  // 命令瞎敲的,npm本身压根没有的，打印帮助文档信息
   if (npm.deref(npm.argv[0])) npm.command = npm.argv.shift()
   else conf.usage = true
-
-  console.log('conf.version is ', conf.version)
-  console.log('conf.versions is ', conf.versions)
 
   if (conf.version) {
     return errorHandler.exit(0)
@@ -140,24 +138,18 @@
     npm.argv = []
   }
 
-  log.info('using', 'npm@%s', npm.version)
-  log.info('using', 'node@%s', process.version)
+  // log.info('using', 'npm@%s', npm.version)
+  // log.info('using', 'node@%s', process.version)
 
   process.on('uncaughtException', errorHandler)
-
-  console.log('npm.command is ', npm.command)
 
   /**
    * usage 为 true 表示查看说明文档
    */
   if (conf.usage && npm.command !== 'help') {
-    console.log('npm.argv is ', npm.argv)
     npm.argv.unshift(npm.command)
-    console.log('npm.argv is ', npm.argv)
     npm.command = 'help'
   }
-
-  
 
   // now actually fire up npm and run the command.  现在实际启动npm并运行命令。
   // this is how to use npm programmatically:  以下是如何通过编程方式使用npm:
@@ -165,8 +157,7 @@
 
   console.log('conf is ', conf)
 
-  process.exit(1)
-  console.log('======= step3: 启动npm并运行命令 =========')
+  console.log('======= step5: 启动npm并运行命令 =========')
   npm.load(conf, function (er) {
     console.log('enter load method')
     if (er) return errorHandler(er)
